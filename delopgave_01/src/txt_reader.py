@@ -8,6 +8,7 @@ def get_list_of_names_from_string(txt: str) -> list[str]:
     names: list[str] = [name.strip() for name in txt.split(',')]
     return names
 
+
 def sort_names_by_char(names: list[str]) -> list[str]:
     names_sorted_by_char = sorted(names, key=str.lower)
     return names_sorted_by_char
