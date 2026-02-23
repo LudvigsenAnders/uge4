@@ -1,31 +1,19 @@
 from pathlib import Path
-
+import matplotlib.pyplot as plt
+import txt_reader
 
 # Current file's directory
 current_dir = Path(__file__).parent
-
 parent_dir = current_dir.parent.parent
-
 file_path = parent_dir/'data'/'Navneliste.txt'
 
-print(file_path)
+names = txt_reader.read_names_from_file(file_path)
+names_sorted_by_char = txt_reader.sort_names_by_char(names)
+names_sorted_by_len = txt_reader.sort_names_by_len(names)
+my_char_dict = txt_reader.count_characters(names)
 
 
-with open(file_path, encoding="utf-8") as f:
-    read_data = f.read()
-
-names: list[str] = [name.strip() for name in read_data.split(',')]
-names_sorted_by_char = sorted(names, key=str.lower)
-names_sorted_by_len = sorted(names, key=len)
-
-my_char_dict = {}
-
-for name in names:
-    for char in name:
-        char = char.lower()
-        if char not in my_char_dict:
-            my_char_dict[char] = 1
-        else:
-            my_char_dict[char] += 1
+print(names_sorted_by_char)
+print(names_sorted_by_len)
 print(my_char_dict)
 print(my_char_dict.get('a', 0))
