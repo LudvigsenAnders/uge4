@@ -1,5 +1,5 @@
 from pathlib import Path
-
+import matplotlib.pyplot as plt
 import txt_reader
 
 # Current file's directory
