@@ -58,9 +58,17 @@ print(f"Median name length: {median_length}")
 plt.figure()
 plt.bar(lengths, counts)
 # Add mean line
-plt.axvline(mean_length, color="red", linestyle="--", linewidth=2, label=f"Mean = {mean_length:.2f}")
+plt.axvline(mean_length,
+            color="red",
+            linestyle="--",
+            linewidth=2,
+            label=f"Mean = {mean_length:.2f}")
 # Add median line
-plt.axvline(median_length, color="green", linestyle="-.", linewidth=2, label=f"Median = {median_length}")
+plt.axvline(median_length,
+            color="green",
+            linestyle="-.",
+            linewidth=2,
+            label=f"Median = {median_length}")
 
 plt.xlabel('Navnelængde')
 plt.ylabel('Frekvens')
