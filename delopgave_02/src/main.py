@@ -7,6 +7,11 @@ path = Path(__file__).resolve().parents[2]
 print(path)
 
 data_file = path / "data" / "app_log (logfil analyse) - random.txt"
-with open(data_file, "r") as f:
-    log_data = f.readlines()
+try:
+    with open(data_file, "r") as f:
+        log_data = f.readlines()
+except FileNotFoundError:
+    print(f"Error: Could not find {data_file}")
+    log_data = []
+
 print(log_data[:5])
