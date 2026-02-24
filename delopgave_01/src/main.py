@@ -1,13 +1,7 @@
-import sys
 from pathlib import Path
 from wordcloud import WordCloud
 import matplotlib.pyplot as plt
-# Go from src → delopgave_01 → uge4
-project_root = Path(__file__).resolve().parents[2]
-# Add uge4 to sys.path
-if str(project_root) not in sys.path:
-    sys.path.append(str(project_root))
-import helper_functions.txt_reader as txt_reader
+import txt_reader
 
 # Current file's directory
 current_dir = Path(__file__).parent
@@ -75,4 +69,3 @@ plt.show()
 
 print("Number of names:", len(names))
 print("Number of unique names:", len(list(set(names))))
-
