@@ -1,7 +1,11 @@
-def read_names_from_file(file_path: str) -> list[str]:
+def get_string_from_file(file_path: str) -> str:
     with open(file_path, encoding="utf-8") as f:
         read_data = f.read()
-    names: list[str] = [name.strip() for name in read_data.split(',')]
+    return read_data
+
+
+def get_list_of_names_from_string(txt: str) -> list[str]:
+    names: list[str] = [name.strip() for name in txt.split(',')]
     return names
 
 
