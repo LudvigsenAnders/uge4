@@ -1,14 +1,7 @@
-from pathlib import Path
+
 from dataclasses import dataclass
 from datetime import datetime
-
-
-path = Path(__file__).resolve().parents[2]
-log_file_01 = path / "data" / "app_log_01.txt"
-log_file_02 = path / "data" / "app_log_02.txt"
-log_file_03 = path / "data" / "app_log_03.txt"
-log_file_04 = path / "data" / "app_log_04.txt"
-path_out = path / "data" / "log_output"
+from pathlib import Path
 
 
 @dataclass
@@ -19,61 +12,52 @@ class LogEntry:
 
 
 def parse_log_line(line: str) -> LogEntry:
-    """
-    Parse a line like: '2024-02-25 09:15:32 INFO Application start'
-    Returns a LogEntry; raises ValueError for malformed lines.
-    """
-    line = line.rstrip("\n")
-    print(f"Parsing line: {line!r}")
-    # Split into at most 4 parts: date, time, level, message (rest)
-    parts = line.split(maxsplit=3)
+    parts = line.rstrip("\n").split(maxsplit=3)
     if len(parts) < 4:
-        raise ValueError(f"Malformed log line (expected 4 fields): {line!r}")
-
+        raise ValueError(f"Malformed log line: {line!r}")
     date_str, time_str, level, message = parts
-    # fromisoformat accepts 'YYYY-MM-DD HH:MM:SS'
-    timestamp = datetime.fromisoformat(f"{date_str} {time_str}")
-    return LogEntry(timestamp=timestamp, level=level, message=message)
+    ts = datetime.fromisoformat(f"{date_str} {time_str}")
+    return LogEntry(ts, level, message)
+
+
+def safe_open(path: Path, mode: str, encoding="utf-8"):
+    """Try opening a file, return file or None."""
+    try:
+        return path.open(mode, encoding=encoding)
+    except Exception as e:
+        print(f"ERROR: Cannot open {path}: {e}")
+        return None
 
 
 def route_logs_dynamic_levels(in_path: Path, out_dir: Path, suffix: str = ".log") -> None:
-    # -------------------------
-    # Check input file first
-    # -------------------------
-    try:
-        with in_path.open("r", encoding="utf-8") as f:
-            pass  # Just to check if we can open the file
-    except FileNotFoundError:
-        print(f"ERROR: Input file not found: {in_path}")
-        return
-    except PermissionError:
-        print(f"ERROR: No permission to read: {in_path}")
-        return
 
-    # -----------------------------
-    # Prepare output directory
-    # -----------------------------
+    # --- validate input file ---
+    fin = safe_open(in_path, "r")
+    if fin is None:
+        return  # error message already printed by safe_open
+
+    # --- prepare output directory ---
     try:
         out_dir.mkdir(parents=True, exist_ok=True)
     except Exception as e:
         print(f"ERROR: Could not create output directory {out_dir}: {e}")
+        fin.close()
         return
 
-    # -----------------------------
-    # Malformed lines file (append)
-    # -----------------------------
+    # --- open malformed file ---
     malformed_path = out_dir / "malformed.log"
-    try:
-        malformed = malformed_path.open("a", encoding="utf-8")
-    except Exception as e:
-        print(f"ERROR: Could not open malformed log file {malformed_path}: {e}")
+    malformed = safe_open(malformed_path, "a")
+    if malformed is None:
+        fin.close()
         return
 
+    # --- dynamic output file store ---
     open_files: dict[str, any] = {}
 
     try:
-        with in_path.open("r", encoding="utf-8") as fin:
+        with fin:
             for line in fin:
+                # --- parse log line ---
                 try:
                     entry = parse_log_line(line)
                 except Exception:
@@ -81,29 +65,41 @@ def route_logs_dynamic_levels(in_path: Path, out_dir: Path, suffix: str = ".log"
                     continue
 
                 level = entry.level.upper()
+                
+                # --- lazy open per-level file ---
                 if level not in open_files:
-                    # Lazily open a new file for this level
-                    outfile = out_dir / f"{level.lower()}{suffix}"
-                    try:
-                        open_files[level] = outfile.open("a", encoding="utf-8")
-                    except Exception as e:
-                        malformed.write(f"Failed to open output file {outfile}: {e}\n")
+                    out_path = out_dir / f"{level.lower()}{suffix}"
+                    f = safe_open(out_path, "a")
+                    if f is None:
+                        malformed.write(f"Failed to open output file for level {level}: {line}")
                         continue
+                    open_files[level] = f
 
-                f = open_files[level]
+                # --- write entry ---
                 try:
-                    f.write(f"{entry.timestamp:%Y-%m-%d %H:%M:%S} {entry.level} {entry.message}\n")
-                except Exception:
-                    malformed.write(f"Failed to write to {level} file: {line}")
+                    open_files[level].write(
+                        f"{entry.timestamp:%Y-%m-%d %H:%M:%S} {entry.level} {entry.message}\n"
+                    )
+                except Exception as e:
+                    malformed.write(f"Failed to write to level {level}: {e} | {line}")
+
     finally:
-        # Ensure all files are closed even if an error occurs
+        # close malformed
         malformed.close()
+        # close all level-based files
         for f in open_files.values():
             try:
                 f.close()
             except Exception:
                 pass
 
+
+path = Path(__file__).resolve().parents[2]
+log_file_01 = path / "data" / "app_log_01.txt"
+log_file_02 = path / "data" / "app_log_02.txt"
+log_file_03 = path / "data" / "app_log_03.txt"
+log_file_04 = path / "data" / "app_log_04.txt"
+path_out = path / "data" / "log_output"
 
 # Example usage
 route_logs_dynamic_levels(log_file_01, path_out)
