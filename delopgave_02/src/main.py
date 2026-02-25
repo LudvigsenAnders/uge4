@@ -67,7 +67,6 @@ def route_logs_dynamic_levels(in_path: Path, out_dir: Path, suffix: str = ".log"
         malformed = malformed_path.open("a", encoding="utf-8")
     except Exception as e:
         print(f"ERROR: Could not open malformed log file {malformed_path}: {e}")
-        malformed.close()
         return
 
     open_files: dict[str, any] = {}
@@ -85,7 +84,11 @@ def route_logs_dynamic_levels(in_path: Path, out_dir: Path, suffix: str = ".log"
                 if level not in open_files:
                     # Lazily open a new file for this level
                     outfile = out_dir / f"{level.lower()}{suffix}"
-                    open_files[level] = outfile.open("a", encoding="utf-8")
+                    try:
+                        open_files[level] = outfile.open("a", encoding="utf-8")
+                    except Exception as e:
+                        malformed.write(f"Failed to open output file {outfile}: {e}\n")
+                        continue
 
                 f = open_files[level]
                 try:
