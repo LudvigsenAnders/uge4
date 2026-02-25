@@ -1,108 +1,81 @@
 
 import csv
-from dataclasses import dataclass
-from datetime import datetime
 from pathlib import Path
 
-
-@dataclass
-class LogEntry:
-    timestamp: datetime
-    level: str
-    message: str
-
-
-def parse_log_line(line: str) -> LogEntry:
-    parts = line.rstrip("\n").split(maxsplit=3)
-    if len(parts) < 4:
-        raise ValueError(f"Malformed log line: {line!r}")
-    date_str, time_str, level, message = parts
-    ts = datetime.fromisoformat(f"{date_str} {time_str}")
-    return LogEntry(ts, level, message)
-
-
-def safe_open(path: Path, mode: str, encoding="utf-8"):
-    """Try opening a file, return file or None."""
+def copy_csv(in_path: Path, out_path: Path, encoding: str = "utf-8") -> None:
+    """
+    Read a CSV file and write to a new CSV (headers preserved).
+    Includes error handling for input/output and ensures files are closed.
+    """
+    # ---------- Validate input file ----------
     try:
-        return path.open(mode, encoding=encoding)
-    except Exception as e:
-        print(f"ERROR: Cannot open {path}: {e}")
-        return None
+        fin = in_path.open("r", encoding=encoding, newline="")
+    except FileNotFoundError:
+        print(f"ERROR: Input CSV not found: {in_path}")
+        return
+    except PermissionError:
+        print(f"ERROR: No permission to read input CSV: {in_path}")
+        return
+    except OSError as e:
+        print(f"ERROR opening input CSV {in_path}: {e}")
+        return
 
-
-def route_logs_dynamic_levels(in_path: Path, out_dir: Path, suffix: str = ".log") -> None:
-
-    # --- validate input file ---
-    fin = safe_open(in_path, "r")
-    if fin is None:
-        return  # error message already printed by safe_open
-
-    # --- prepare output directory ---
+    # ---------- Prepare output directory ----------
     try:
-        out_dir.mkdir(parents=True, exist_ok=True)
+        out_path.parent.mkdir(parents=True, exist_ok=True)
     except Exception as e:
-        print(f"ERROR: Could not create output directory {out_dir}: {e}")
+        print(f"ERROR: Could not create output directory {out_path.parent}: {e}")
         fin.close()
         return
 
-    # --- open malformed file ---
-    malformed_path = out_dir / "malformed.log"
-    malformed = safe_open(malformed_path, "a")
-    if malformed is None:
+    # ---------- Open output file ----------
+    try:
+        fout = out_path.open("w", encoding=encoding, newline="")
+    except PermissionError:
+        print(f"ERROR: No permission to write output CSV: {out_path}")
+        fin.close()
+        return
+    except OSError as e:
+        print(f"ERROR opening output CSV {out_path}: {e}")
         fin.close()
         return
 
-    # --- dynamic output file store ---
-    open_files: dict[str, any] = {}
-
     try:
-        with fin:
-            for line in fin:
-                # --- parse log line ---
-                try:
-                    entry = parse_log_line(line)
-                except Exception:
-                    malformed.write(line)
-                    continue
+        with fin, fout:
+            reader = csv.reader(fin)
+            writer = csv.writer(fout)
 
-                level = entry.level.upper()
-                # --- lazy open per-level file ---
-                if level not in open_files:
-                    out_path = out_dir / f"{level.lower()}{suffix}"
-                    f = safe_open(out_path, "a")
-                    if f is None:
-                        malformed.write(f"Failed to open output file for level {level}: {line}")
-                        continue
-                    open_files[level] = f
+            try:
+                header = next(reader)  # may raise StopIteration on empty file
+            except StopIteration:
+                print(f"WARNING: Input CSV is empty: {in_path}. Creating empty output.")
+                return
 
-                # --- write entry ---
+            # Write header
+            writer.writerow(header)
+
+            # Copy rows safely; if a row is malformed, skip and continue
+            for idx, row in enumerate(reader, start=2):  # header is line 1
                 try:
-                    open_files[level].write(
-                        f"{entry.timestamp:%Y-%m-%d %H:%M:%S} {entry.level} {entry.message}\n"
-                    )
+                    writer.writerow(row)
                 except Exception as e:
-                    malformed.write(f"Failed to write to level {level}: {e} | {line}")
+                    # Log and skip problematic row
+                    print(f"WARNING: Failed to write row {idx}: {e}. Row content: {row!r}")
 
     finally:
-        # close malformed
-        malformed.close()
-        # close all level-based files
-        for f in open_files.values():
-            try:
-                f.close()
-            except Exception:
-                pass
-
+        # Context managers already close files, this is just extra safety if above returned early
+        try:
+            fout.close()
+        except Exception:
+            pass
+        # fin is closed by the with-statement above
 
 path = Path(__file__).resolve().parents[2]
-log_file_01 = path / "data" / "app_log_01.txt"
-log_file_02 = path / "data" / "app_log_02.txt"
-log_file_03 = path / "data" / "app_log_03.txt"
-log_file_04 = path / "data" / "app_log_04.txt"
-path_out = path / "data" / "log_output"
+source_file_01 = path / "data" / "source_data.csv"
+source_file_02 = path / "data" / "write_protect_source_data.csv"
+path_out = path / "data" / "csv_output"
 
 # Example usage
-route_logs_dynamic_levels(log_file_01, path_out)
-route_logs_dynamic_levels(log_file_02, path_out)
-route_logs_dynamic_levels(log_file_03, path_out)
-route_logs_dynamic_levels(log_file_04, path_out)
+copy_csv(source_file_01, path_out / "output_01.csv")
+copy_csv(source_file_02, path_out / "output_02.csv")
+
