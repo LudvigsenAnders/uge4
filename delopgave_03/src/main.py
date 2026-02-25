@@ -1,6 +1,6 @@
-
 import csv
 from pathlib import Path
+
 
 def copy_csv(in_path: Path, out_path: Path, encoding: str = "utf-8") -> None:
     """
@@ -70,6 +70,7 @@ def copy_csv(in_path: Path, out_path: Path, encoding: str = "utf-8") -> None:
             pass
         # fin is closed by the with-statement above
 
+
 path = Path(__file__).resolve().parents[2]
 source_file_01 = path / "data" / "source_data.csv"
 source_file_02 = path / "data" / "write_protect_source_data.csv"
@@ -78,4 +79,3 @@ path_out = path / "data" / "csv_output"
 # Example usage
 copy_csv(source_file_01, path_out / "output_01.csv")
 copy_csv(source_file_02, path_out / "output_02.csv")
-
