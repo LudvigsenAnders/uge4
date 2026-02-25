@@ -1,4 +1,5 @@
 
+import csv
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
@@ -65,7 +66,6 @@ def route_logs_dynamic_levels(in_path: Path, out_dir: Path, suffix: str = ".log"
                     continue
 
                 level = entry.level.upper()
-                
                 # --- lazy open per-level file ---
                 if level not in open_files:
                     out_path = out_dir / f"{level.lower()}{suffix}"
