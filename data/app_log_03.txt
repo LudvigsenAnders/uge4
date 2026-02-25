@@ -1,0 +1,9 @@
+2024-02-26 10:15:00 SUCCESS Maintenance completed successfully
+2024-02-26 10:15:05 INFO Application resumed normal operationy
+2024-02-26 11:06:15 ERROR Unable to send email notification
+test with new line that does not match correct format
+2024-02-26 11:13:46 INFO Starting data sync operation
+2024-02-26 11:45:40 ERROR Unable to access external API
+2024-02-26 12:02:14 WARNING Missing user settings; using defaults
+2024-02-26 13:21:36 SUCCESS Data sync completed successfully
+2024-02-26 13:58:08 ERROR Unable to access external API

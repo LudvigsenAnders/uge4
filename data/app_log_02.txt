@@ -1,0 +1,10 @@
+2024-02-25 09:20:00 INFO Application shutdown
+2024-02-26 10:05:22 INFO Application start
+2024-02-26 10:05:27 ERROR Missing configuration file
+2024-02-26 10:06:15 WARNING Attempt to use deprecated feature
+2024-02-26 10:07:42 INFO New user 'guest' created
+2024-02-26 10:08:55 ERROR Disk write error
+2024-02-26 10:09:00 INFO User 'guest' logged out
+2024-02-26 10:10:30 WARNING Memory usage is high
+2024-02-26 10:11:00 ERROR Unable to access external API
+2024-02-26 10:12:45 INFO Scheduled maintenance mode activated
