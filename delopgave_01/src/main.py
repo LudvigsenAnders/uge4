@@ -6,7 +6,7 @@ import txt_reader
 # Current file's directory
 current_dir = Path(__file__).parent
 parent_dir = current_dir.parent.parent
-file_path = parent_dir/'data'/'Navneliste.txt'
+file_path = parent_dir / 'data' / 'Navneliste.txt'
 txt_string = txt_reader.get_string_from_file(file_path)
 names = txt_reader.get_list_of_names_from_string(txt_string)
 names_sorted_by_char = txt_reader.sort_names_by_char(names)
