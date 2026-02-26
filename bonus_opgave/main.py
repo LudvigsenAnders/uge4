@@ -1,9 +1,13 @@
 from pathlib import Path
 
 
-def load_and_calc_housing_data(path_housing: Path):
-    total_villa_purchaseAmt = 0
-    total_villa_count = 0
+def load_and_calc_housing_data(path_housing: Path) -> tuple[float, int]:
+    '''Load housing data from a CSV file and calculate total purchase amount and count for villas.
+    args:
+        path_housing (Path): The path to the CSV file containing housing data.
+    '''
+    total_villa_purchaseAmt: float = 0.0
+    total_villa_count: int = 0
     with open(path_housing, "r", encoding="utf-8") as f:
         lines = (line for line in f)
         list_line = (s.rstrip().split(",") for s in lines)
