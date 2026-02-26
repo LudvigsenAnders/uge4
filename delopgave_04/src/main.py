@@ -1,5 +1,5 @@
 import pandas as pd
-
+import matplotlib.pyplot as plt
 from pathlib import Path
 
 path = Path(__file__).resolve().parents[2]
@@ -40,7 +40,13 @@ df = pd.read_csv(
 
 df['date'] = pd.to_datetime(df['date'], errors='coerce', format='%Y-%m-%d').dt.date
 df['quarter'] = pd.PeriodIndex(df['quarter'], freq='Q')
-
-print(df.info())
-print(df.describe(include='all'))
 print(df.head(10))
+
+df_region_grp = df.groupby('region')['purchase_price'].agg(['mean', 'median', 'std', 'min', 'max'])
+print(df_region_grp)
+
+df_house_type_grp = df.groupby('house_type')['purchase_price'].agg(['mean', 'median', 'std', 'min', 'max'])
+print(df_house_type_grp)
+
+df_house_type_grp.plot(kind='bar', y='mean', title='Average Purchase Price by House Type')
+plt.show()
