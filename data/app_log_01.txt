@@ -1,9 +1,0 @@
-2024-02-25 09:15:32 INFO Application start
-2024-02-25 09:15:37 WARNING Missing user settings; using defaults
-2024-02-25 09:15:42 ERROR Failed to initialize database connection
-2024-02-25 09:16:10 INFO User 'admin' logged in
-2024-02-25 09:17:45 WARNING Low disk space
-2024-02-25 09:18:00 ERROR Unable to send email notification
-2024-02-25 09:19:05 INFO Starting data sync operation
-2024-02-25 09:19:10 ERROR Data sync failed with network error
-2024-02-25 09:19:30 INFO Data sync operation retried
